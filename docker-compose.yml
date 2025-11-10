@@ -14,11 +14,16 @@ services:
 
   app:
     build: .
+    image: tasklist_app:latest
+    container_name: tasklist_app
     depends_on:
       - postgres
     ports:
-      - "8080:8080"
+      - "8081:8081"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/tasklistdb
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/tasklistdb
       SPRING_DATASOURCE_USERNAME: taskuser
       SPRING_DATASOURCE_PASSWORD: taskpass
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"
+
