@@ -1,31 +1,19 @@
 package com.codealchemists.tasklist.model;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 
-import java.util.UUID;
+public record User(
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        Long id,
 
+        @Column(unique = true, nullable = false)
+        String username,
 
-@Entity
-@Table(name = "app_user")
-public class User {
-    @Id
-    @Column(columnDefinition = "uuid")
-    private UUID id = UUID.randomUUID();
-
-
-    @Column(unique = true, nullable = false)
-    private String username;
-
-
-    @Column(nullable = false)
-    private String passwordHash;
-
-
-// Add roles here later
-
-
-// Add constructors, getters, setters
+        @Column(nullable = false)
+        String passwordHash
+) {
 }

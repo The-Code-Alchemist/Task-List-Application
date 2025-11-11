@@ -1,7 +1,7 @@
 package com.codealchemists.tasklist.model;
 
 public enum TaskStatus {
-    TODO,
+    TO_DO,
     IN_PROGRESS,
     REVIEW,
     DONE
