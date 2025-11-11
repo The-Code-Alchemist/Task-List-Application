@@ -2,36 +2,37 @@
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <title>Task List (Auth)</title>
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+        <title>Task List</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
     </head>
-    <body class="p-4 bg-light">
-        <div class="container">
-            <h1>Task List</h1>
+    <body class="p-4">
+    <div class="container">
+        <h1>Task List</h1>
 
-            <div id="auth-area" class="mb-4">
-                <input id="username" placeholder="username" class="form-control mb-2" />
-                <input id="password" placeholder="password" type="password" class="form-control mb-2" />
-                <button id="signup" class="btn btn-outline-primary me-2">Sign Up</button>
-                <button id="login" class="btn btn-primary">Log In</button>
-                <button id="logout" class="btn btn-warning ms-2" style="display:none">Log Out</button>
-            </div>
+        <div id="auth" class="mb-3">
+            <label for="username">Username</label><input id="username" placeholder="username" class="form-control mb-2"/>
+            <label for="password">Password</label><input id="password" placeholder="password" type="password" class="form-control mb-2"/>
+            <button id="btnRegister" class="btn btn-outline-primary me-2">Register</button>
+            <button id="btnLogin" class="btn btn-primary">Login</button>
+            <button id="btnLogout" class="btn btn-warning" style="display:none">Logout</button>
+        </div>
 
-            <form id="task-form" class="mb-4" style="display:none">
-                <input id="shortDescription" class="form-control mb-2" placeholder="Short description" required>
-                <textarea id="longDescription" class="form-control mb-2" placeholder="Long description" rows="3" required></textarea>
-                <select id="status" class="form-select mb-2" required>
+        <div id="taskArea" style="display:none">
+            <div class="mb-3">
+                <input id="short" class="form-control mb-2" placeholder="Short description"/>
+                <textarea id="long" class="form-control mb-2" placeholder="Long description"></textarea>
+                <select id="status" class="form-select mb-2">
                     <option value="TO_DO">To Do</option>
                     <option value="IN_PROGRESS">In Progress</option>
                     <option value="REVIEW">Review</option>
                     <option value="DONE">Done</option>
                 </select>
-                <button class="btn btn-success" type="submit">Add Task</button>
-            </form>
+                <button id="create" class="btn btn-success">Create</button>
+            </div>
 
-            <ul id="task-list" class="list-group"></ul>
+            <ul id="tasks" class="list-group"></ul>
         </div>
-
-        <script src="app.js"></script>
+    </div>
+    <script src="app.js"></script>
     </body>
 </html>

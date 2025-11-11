@@ -1,131 +1,96 @@
 const API = {
-    tasks: '/api/tasks',
-    signup: '/api/auth/signup',
-    login: '/api/auth/login'
+    register: '/api/auth/register',
+    login: '/api/auth/login',
+    tasks: '/api/tasks'
 };
 
-function getToken() {
-    return localStorage.getItem('jwtToken');
-}
-
-function saveToken(t) {
-    localStorage.setItem('jwtToken', t);
-}
-
+function token() { return localStorage.getItem('jwt'); }
 function authHeaders() {
-    const token = getToken();
-    return token ? { 'Authorization': 'Bearer ' + token } : {};
+    const t = token();
+    return t ? { 'Authorization': 'Bearer ' + t } : {};
 }
 
-async function request(url, opts = {}) {
-    opts.headers = Object.assign({'Content-Type': 'application/json'}, authHeaders(), opts.headers || {});
+async function call(url, opts = {}) {
+    opts.headers = Object.assign({ 'Content-Type': 'application/json' }, authHeaders(), opts.headers || {});
     const res = await fetch(url, opts);
-    if (!res.ok) {
-        // try parse error
-        let err = await res.text();
-        try { err = JSON.parse(err); } catch(e){}
-        throw { status: res.status, body: err };
-    }
+    if (!res.ok) throw await res.json();
     if (res.status === 204) return null;
     return res.json();
 }
 
-// Auth controls
-document.getElementById('signup').onclick = async () => {
+document.getElementById('btnRegister').onclick = async () => {
     const u = document.getElementById('username').value;
     const p = document.getElementById('password').value;
     try {
-        const r = await request(API.signup, { method: 'POST', body: JSON.stringify({ username: u, password: p }) });
-        saveToken(r.token);
-        onLogin();
-    } catch(e) { alert('Signup failed: ' + JSON.stringify(e)); }
+        await call(API.register, { method: 'POST', body: JSON.stringify({ username: u, password: p }) });
+        alert('registered - now login');
+    } catch (e) { alert('register failed: ' + JSON.stringify(e)); }
 };
 
-document.getElementById('login').onclick = async () => {
+document.getElementById('btnLogin').onclick = async () => {
     const u = document.getElementById('username').value;
     const p = document.getElementById('password').value;
     try {
-        const r = await request(API.login, { method: 'POST', body: JSON.stringify({ username: u, password: p }) });
-        saveToken(r.token);
+        const r = await call(API.login, { method: 'POST', body: JSON.stringify({ username: u, password: p }) });
+        localStorage.setItem('jwt', r.token);
         onLogin();
-    } catch(e) { alert('Login failed: ' + JSON.stringify(e)); }
+    } catch (e) { alert('login failed: ' + JSON.stringify(e)); }
 };
 
-document.getElementById('logout').onclick = () => {
-    localStorage.removeItem('jwtToken');
-    onLogout();
-};
+document.getElementById('btnLogout').onclick = () => { localStorage.removeItem('jwt'); onLogout(); };
 
-// Task CRUD
-const form = document.getElementById('task-form');
-const taskList = document.getElementById('task-list');
-
-form.onsubmit = async (e) => {
-    e.preventDefault();
-    const shortDescription = document.getElementById('shortDescription').value;
-    const longDescription = document.getElementById('longDescription').value;
+document.getElementById('create').onclick = async () => {
+    const short = document.getElementById('short').value;
+    const long = document.getElementById('long').value;
     const status = document.getElementById('status').value;
-    await request(API.tasks, { method: 'POST', body: JSON.stringify({ shortDescription, longDescription, status }) });
-    form.reset();
-    loadTasks();
+    try {
+        await call(API.tasks, { method: 'POST', body: JSON.stringify({ shortDescription: short, longDescription: long, status }) });
+        loadTasks();
+    } catch (e) { alert('create failed: ' + JSON.stringify(e)); }
 };
 
 async function loadTasks() {
     try {
-        const tasks = await request(API.tasks);
-        renderTasks(tasks);
-    } catch(e) {
-        console.error('loadTasks error', e);
-        renderTasks([]);
+        const tasks = await call(API.tasks);
+        const ul = document.getElementById('tasks');
+        ul.innerHTML = '';
+        tasks.forEach(t => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item d-flex justify-content-between align-items-start';
+            li.innerHTML = `<div>
+                        <div><strong>${escapeHtml(t.shortDescription)}</strong></div>
+                        <div>${escapeHtml(t.longDescription)}</div>
+                        <small>${t.status}</small>
+                      </div>
+                      <div>
+                        <button class="btn btn-sm btn-danger">Delete</button>
+                      </div>`;
+            li.querySelector('button').addEventListener('click', async () => {
+                await call(API.tasks + '/' + t.id, { method: 'DELETE' });
+                loadTasks();
+            });
+            ul.appendChild(li);
+        });
+    } catch (e) {
+        console.error(e);
     }
 }
 
-function renderTasks(tasks) {
-    taskList.innerHTML = '';
-    tasks.forEach(t => {
-        const li = document.createElement('li');
-        li.className = 'list-group-item d-flex justify-content-between align-items-start';
-        li.innerHTML = `<div>
-        <h5>${escapeHtml(t.shortDescription)}</h5>
-        <p class="mb-1">${escapeHtml(t.longDescription)}</p>
-        <small>Status: ${t.status}</small>
-      </div>
-      <div>
-        <button class="btn btn-sm btn-danger me-2">Delete</button>
-      </div>`;
-        li.querySelector('button').addEventListener('click', async () => {
-            await request(`/api/tasks/${t.id}`, { method: 'DELETE' });
-            loadTasks();
-        });
-        taskList.appendChild(li);
-    });
-}
-
-function escapeHtml(text) {
-    if (!text) return '';
-    return text.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
-}
-
-// UI state after login/logout
-function onLogin() {
-    document.getElementById('task-form').style.display = 'block';
-    document.getElementById('logout').style.display = 'inline-block';
-    document.getElementById('login').style.display = 'none';
-    document.getElementById('signup').style.display = 'none';
+function onLogin(){
+    document.getElementById('taskArea').style.display = 'block';
+    document.getElementById('btnLogout').style.display = 'inline-block';
+    document.getElementById('btnLogin').style.display = 'none';
+    document.getElementById('btnRegister').style.display = 'none';
     loadTasks();
 }
 
-function onLogout() {
-    document.getElementById('task-form').style.display = 'none';
-    document.getElementById('logout').style.display = 'none';
-    document.getElementById('login').style.display = 'inline-block';
-    document.getElementById('signup').style.display = 'inline-block';
-    taskList.innerHTML = '';
+function onLogout(){
+    document.getElementById('taskArea').style.display = 'none';
+    document.getElementById('btnLogout').style.display = 'none';
+    document.getElementById('btnLogin').style.display = 'inline-block';
+    document.getElementById('btnRegister').style.display = 'inline-block';
 }
 
-// Check if already logged in
-if (getToken()) {
-    onLogin();
-} else {
-    onLogout();
-}
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
+
+if (token()) onLogin();
