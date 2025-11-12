@@ -1,8 +1,8 @@
-version: '3.8'
+version: '3.9'
 services:
-  postgres:
-    image: postgres:15
-    container_name: tasklist_postgres
+  db:
+    image: postgres:16
+    container_name: tasklist_db
     environment:
       POSTGRES_DB: tasklistdb
       POSTGRES_USER: taskuser
@@ -10,20 +10,27 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./data/postgres:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL","pg_isready -U taskuser"]
+      interval: 5s
+      start_period: 10s
+      retries: 5
 
   app:
     build: .
-    image: tasklist_app:latest
     container_name: tasklist_app
     depends_on:
-      - postgres
+      db:
+        condition: service_healthy
     ports:
       - "8081:8081"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/tasklistdb
       SPRING_DATASOURCE_USERNAME: taskuser
       SPRING_DATASOURCE_PASSWORD: taskpass
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      SPRING_JPA_SHOW_SQL: "true"
+      JWT_SECRET: change-this-in-production
+      JWT_EXP_MS: 3600000
 
+volumes:
+  pgdata:
