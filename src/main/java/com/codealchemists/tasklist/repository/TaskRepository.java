@@ -7,6 +7,5 @@ import java.util.UUID;
 import java.util.List;
 
 public interface TaskRepository extends JpaRepository<Task, UUID> {
-    // TODO implement similar to UserRepository
     List<Task> findByOwnerUsername(String username);
 }
