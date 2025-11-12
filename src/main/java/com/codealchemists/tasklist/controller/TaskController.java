@@ -24,7 +24,7 @@ public class TaskController {
     public TaskController(TaskService svc) { this.taskService = svc; }
 
     @GetMapping
-    public List<Task> list() { return taskService.listAllTasks(); }
+    public List<Task> list() { return taskService.getAllTasks(); }
 
     @GetMapping("/{id}")
     public Task get(@PathVariable UUID id) { return taskService.getTaskById(id); }
